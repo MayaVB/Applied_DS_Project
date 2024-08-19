@@ -14,7 +14,7 @@ def load_data(file_path):
     return pd.read_csv(file_path)
 
 
-def preprocess_data(df):
+def preprocess_data(df, useKNNImputer=False):
     """Preprocess the data: encoding categorical features, and scaling numerical features."""   
     # Create label
     y = df['status'].map({'acquired': 1, 'closed': 0})
@@ -41,13 +41,12 @@ def preprocess_data(df):
     # Combine encoded categorical and scaled numerical data
     processed_df = pd.concat([encoded_categorical_df, scaled_numerical_df], axis=1)
     
-    # Optionally replace NaN values
-    processed_df.fillna(processed_df.mean(), inplace=True)
-    
-    # Alternatively we can use KNNImputer- TBR
-    # knn_imputer = KNNImputer(n_neighbors=5)
-    # processed_df = pd.DataFrame(knn_imputer.fit_transform(processed_df), columns=processed_df.columns)
-    
+    if useKNNImputer:
+        knn_imputer = KNNImputer(n_neighbors=5)
+        processed_df = pd.DataFrame(knn_imputer.fit_transform(processed_df), columns=processed_df.columns)
+    else:
+        processed_df.fillna(processed_df.mean(), inplace=True)
+        
     return processed_df, y
 
 
