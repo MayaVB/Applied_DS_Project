@@ -93,18 +93,21 @@ def add_economic_indicators(df, indicator_code):
     
     return df
 
+def main():
+    ###########################
+    # Load the startup data from a CSV file
+    df = pd.read_csv('data/startup_data.csv')
 
-###########################
-# Load the startup data from a CSV file
-df = pd.read_csv('data/startup_data.csv')
+    # Add NASDAQ annual changes to the DataFrame
+    df = add_nasdaq_annual_changes(df)
 
-# Add NASDAQ annual changes to the DataFrame
-df = add_nasdaq_annual_changes(df)
+    # Define the World Bank indicator code for GDP growth and add it to the DataFrame
+    indicator_code = 'NY.GDP.MKTP.KD.ZG'  # GDP growth (annual %)
+    df = add_economic_indicators(df, indicator_code)
 
-# Define the World Bank indicator code for GDP growth and add it to the DataFrame
-indicator_code = 'NY.GDP.MKTP.KD.ZG'  # GDP growth (annual %)
-df = add_economic_indicators(df, indicator_code)
-
-# Define the World Bank indicator code for the unemployment rate and add it to the DataFrame
-indicator_code = 'SL.UEM.TOTL.ZS'  # Unemployment rate, percentage of total labor force
-df = add_economic_indicators(df, indicator_code)
+    # Define the World Bank indicator code for the unemployment rate and add it to the DataFrame
+    indicator_code = 'SL.UEM.TOTL.ZS'  # Unemployment rate, percentage of total labor force
+    df = add_economic_indicators(df, indicator_code)
+    
+if __name__ == "__main__":
+    main()

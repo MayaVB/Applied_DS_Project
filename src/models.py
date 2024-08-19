@@ -1,54 +1,12 @@
-import pandas as pd
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-import numpy as np
 from sklearn.impute import KNNImputer
 from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report, roc_auc_score, confusion_matrix, precision_score, recall_score, balanced_accuracy_score
 from eval import show_ConfusionMatrix_test, get_precision_and_recall
-from addData import add_nasdaq_annual_changes, add_economic_indicators
+from getdata import add_nasdaq_annual_changes, add_economic_indicators
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
-
-def load_data(file_path):
-    """Load the dataset from a CSV file."""
-    return pd.read_csv(file_path)
-
-def preprocess_data(df):
-    """Preprocess the data: encoding categorical features, and scaling numerical features."""
-    
-    # Create label
-    y = df['status'].map({'acquired': 1, 'closed': 0})
-    
-    # Drop unnecessary columns
-    df = df.drop(columns=['status', 'founded_at', 'name', 'id', 'state_code', 'object_id', 'labels', 'closed_at', 'Unnamed: 0', 
-                          'Unnamed: 6', 'zip_code', 'city', 'closed_at'])
-    X = df
-    
-    # Identify categorical and numerical columns
-    categorical_columns = X.select_dtypes(include=['object']).columns
-    numerical_columns = X.select_dtypes(include=['number']).columns
-    
-    # OneHotEncode categorical columns
-    encoder = OneHotEncoder(sparse=False)
-    encoded_categorical = encoder.fit_transform(X[categorical_columns])
-    encoded_categorical_df = pd.DataFrame(encoded_categorical, columns=encoder.get_feature_names_out(categorical_columns))
-    
-    # Standardize numerical columns
-    scaler = StandardScaler()
-    scaled_numerical = scaler.fit_transform(X[numerical_columns])
-    scaled_numerical_df = pd.DataFrame(scaled_numerical, columns=numerical_columns)
-    
-    # Combine encoded categorical and scaled numerical data
-    processed_df = pd.concat([encoded_categorical_df, scaled_numerical_df], axis=1)
-    
-    # Optionally replace NaN values
-    processed_df.fillna(processed_df.mean(), inplace=True)
-    # Alternatively, you can use KNNImputer
-    # knn_imputer = KNNImputer(n_neighbors=5)
-    # processed_df = pd.DataFrame(knn_imputer.fit_transform(processed_df), columns=processed_df.columns)
-    
-    return processed_df, y
+from preprocess import preprocess_data, load_data
 
 
 def train_xgb_model(X_train, y_train):
@@ -69,11 +27,16 @@ def train_svm_model(X_train, y_train):
     svm_clf.fit(X_train, y_train)
     return svm_clf
 
-def evaluate_model(model, X_test, y_test, threshold=0.7):
-    """Evaluate the model using various metrics and display results."""
+
+def predict_model(model, X_test):
+    """make predictions and estimate probabilitys."""
     y_pred = model.predict(X_test)
     y_prob = model.predict_proba(X_test)[:, 1]
-    
+    return y_pred, y_prob
+
+
+def evaluate_model(y_test, y_pred, y_prob, threshold=0.7):
+    """Evaluate the model using various metrics and display results."""  
     # Apply threshold to predictions
     y_pred_threshold = y_pred > threshold
     
@@ -117,15 +80,18 @@ def main():
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=20)
     
-    # Train and evaluate models
+    # Train predict and evaluate models
     xgb_clf = train_xgb_model(X_train, y_train)
-    evaluate_model(xgb_clf, X_test, y_test)
+    xgb_pred, xgb_prob = predict_model(xgb_clf, X_test)
+    evaluate_model(y_test, xgb_pred, xgb_prob, threshold=0.7)
     
     rf_clf = train_rf_model(X_train, y_train)
-    evaluate_model(rf_clf, X_test, y_test)
+    rf_pred, rf_prob = predict_model(rf_clf, X_test)
+    evaluate_model(y_test, rf_pred, rf_prob)
     
     svm_clf = train_svm_model(X_train, y_train)
-    evaluate_model(svm_clf, X_test, y_test)
+    svm_pred, svm_prob = predict_model(svm_clf, X_test)
+    evaluate_model(y_test, svm_pred, svm_prob)
 
 if __name__ == "__main__":
     main()

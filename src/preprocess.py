@@ -4,34 +4,51 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
+from sklearn.impute import KNNImputer
+import sys
+from printstatistics import print_correlations_Spearman_and_Pearson
+
+
+def load_data(file_path):
+    """Load the dataset from a CSV file."""
+    return pd.read_csv(file_path)
 
 
 def preprocess_data(df):
-    """Preprocesses the data by encoding categorical columns and standardizing numerical columns."""
-    categorical_columns = df.select_dtypes(include=['object']).columns
-    numerical_columns = df.select_dtypes(include=['number']).columns
-
+    """Preprocess the data: encoding categorical features, and scaling numerical features."""   
+    # Create label
+    y = df['status'].map({'acquired': 1, 'closed': 0})
+    
+    # Drop unnecessary columns
+    df = df.drop(columns=['status', 'founded_at', 'name', 'id', 'state_code', 'object_id', 'labels', 'closed_at', 'Unnamed: 0', 
+                'Unnamed: 6', 'zip_code', 'city', 'closed_at'])
+    X = df
+    
+    # Identify categorical and numerical columns
+    categorical_columns = X.select_dtypes(include=['object']).columns
+    numerical_columns = X.select_dtypes(include=['number']).columns
+    
     # OneHotEncode categorical columns
-    encoder = OneHotEncoder(sparse_output=False)
-    encoded_categorical = encoder.fit_transform(df[categorical_columns])
-
-    # Create a DataFrame from the encoded categorical data
+    encoder = OneHotEncoder(sparse=False)
+    encoded_categorical = encoder.fit_transform(X[categorical_columns])
     encoded_categorical_df = pd.DataFrame(encoded_categorical, columns=encoder.get_feature_names_out(categorical_columns))
-
+    
     # Standardize numerical columns
     scaler = StandardScaler()
-    scaled_numerical = scaler.fit_transform(df[numerical_columns])
-
-    # Create a DataFrame from the scaled numerical data
+    scaled_numerical = scaler.fit_transform(X[numerical_columns])
     scaled_numerical_df = pd.DataFrame(scaled_numerical, columns=numerical_columns)
-
+    
     # Combine encoded categorical and scaled numerical data
     processed_df = pd.concat([encoded_categorical_df, scaled_numerical_df], axis=1)
-
-    # Replace NaN values with the average value of their respective columns
+    
+    # Optionally replace NaN values
     processed_df.fillna(processed_df.mean(), inplace=True)
-
-    return processed_df
+    
+    # Alternatively we can use KNNImputer- TBR
+    # knn_imputer = KNNImputer(n_neighbors=5)
+    # processed_df = pd.DataFrame(knn_imputer.fit_transform(processed_df), columns=processed_df.columns)
+    
+    return processed_df, y
 
 
 def perform_pca(processed_df, n_components=None, thereshold_PCA=0.85):
@@ -53,7 +70,7 @@ def perform_pca(processed_df, n_components=None, thereshold_PCA=0.85):
         plt.axvline(x=num_components - 1, color='r', linestyle='-')
         plt.grid()
         plt.show()
-
+        
         print(f'Minimal number of components to explain {thereshold_PCA} variance: {num_components}')
     
     return principalComponents
@@ -99,24 +116,28 @@ def perform_tsne(processed_df, status):
 
     return tsne_components
 
+def main():
+    # Load data
+    df = load_data('data/startup_data.csv')
 
-# Load data
-df = pd.read_csv('data/startup_data.csv')
+    # Preprocess data
+    processed_df = preprocess_data(df)
 
-# Preprocess data
-processed_df = preprocess_data(df)
+    # Separate the 'status' column
+    status = df['status'].map({'acquired': 1, 'closed': 0})
 
-# Separate the 'status' column
-status = df['status'].map({'acquired': 1, 'closed': 0})
+    # Perform PCA with cumulative variance threshold
+    principalComponents_pca = perform_pca(processed_df)
 
-# Perform PCA with cumulative variance threshold
-principalComponents_pca = perform_pca(processed_df)
+    # Perform PCA with 3 components
+    principalComponents_pca_3 = perform_pca(processed_df, n_components=3)
 
-# Perform PCA with 3 components
-principalComponents_pca_3 = perform_pca(processed_df, n_components=3)
+    # Plot the first three PCA components in 3D
+    plot_pca_3d(principalComponents_pca_3, status)
 
-# Plot the first three PCA components in 3D
-plot_pca_3d(principalComponents_pca_3, status)
+    # Perform t-SNE and plot
+    tsne_components = perform_tsne(processed_df, status)
 
-# Perform t-SNE and plot
-tsne_components = perform_tsne(processed_df, status)
+
+if __name__ == "__main__":
+    main()

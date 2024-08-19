@@ -1,12 +1,15 @@
-from sklearn.metrics import confusion_matrix, precision_score, recall_score
-from sklearn.metrics import balanced_accuracy_score, classification_report
-from sklearn.metrics import roc_curve, auc
-from sklearn.metrics import ConfusionMatrixDisplay
 import pandas as pd
-
-
+import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
+
+from sklearn.metrics import confusion_matrix, precision_score, recall_score
+from sklearn.metrics import balanced_accuracy_score
+from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import ConfusionMatrixDisplay
+from sklearn.model_selection import StratifiedKFold, cross_validate
+from sklearn.metrics import make_scorer, balanced_accuracy_score, precision_score, recall_score, f1_score, cohen_kappa_score
+from scipy.stats import spearmanr, pearsonr
 
 
 def show_ConfusionMatrix_test(y_test, y_test_pred, test_confusion_matrix_title = "Confusion Matrix (Test)"):
@@ -70,7 +73,7 @@ def plot_feature_importances(model, feature_names, num_of_features=10):
     importance_df = importance_df.sort_values(by='Importance', ascending=False).head(num_of_features)
 
     # Plotting
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(14, 8))
     plt.barh(importance_df['Feature'], importance_df['Importance'])
     plt.xlabel('Importance')
     plt.title(f'Top {num_of_features} Feature Importances')
@@ -101,6 +104,96 @@ def plot_auc_roc_curve(y_true, y_prob, model_name='Model'):
     plt.legend(loc="lower right")
     plt.grid()
     plt.show()
+
+
+def perform_cross_validation(model, X_train, y_train, n_splits=5, random_state=42):
+    # Initialize StratifiedKFold with the given number of splits and random state
+    cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+
+    # Define the scoring metrics
+    scoring = {
+        'accuracy': 'accuracy',
+        'balanced_accuracy': make_scorer(balanced_accuracy_score),
+        'roc_auc': 'roc_auc',
+        'precision': make_scorer(precision_score),
+        'recall': make_scorer(recall_score),
+        'f1': make_scorer(f1_score),
+        'kappa': make_scorer(cohen_kappa_score)
+    }
+
+    # Perform cross-validation
+    cv_results = cross_validate(model, X_train, y_train, cv=cv, scoring=scoring, return_train_score=False)
+    
+    # Print the cross-validation results
+    print(f"Cross-Validation Accuracy Scores: {cv_results['test_accuracy']}")
+    print(f"Mean Cross-Validation Accuracy: {round(cv_results['test_accuracy'].mean(), 2)}")
+    
+    print(f"Cross-Validation Balanced Accuracy Scores: {cv_results['test_balanced_accuracy']}")
+    print(f"Mean Cross-Validation Balanced Accuracy: {round(cv_results['test_balanced_accuracy'].mean(), 2)}")
+    
+    print(f"Cross-Validation AUC Scores: {cv_results['test_roc_auc']}")
+    print(f"Mean Cross-Validation AUC: {round(cv_results['test_roc_auc'].mean(), 2)}")
+    
+    print(f"Cross-Validation Precision Scores: {cv_results['test_precision']}")
+    print(f"Mean Cross-Validation Precision: {round(cv_results['test_precision'].mean(), 2)}")
+    
+    print(f"Cross-Validation Recall Scores: {cv_results['test_recall']}")
+    print(f"Mean Cross-Validation Recall: {round(cv_results['test_recall'].mean(), 2)}")
+    
+    print(f"Cross-Validation F1 Scores: {cv_results['test_f1']}")
+    print(f"Mean Cross-Validation F1: {round(cv_results['test_f1'].mean(), 2)}")
+    
+    print(f"Cross-Validation Kappa Scores: {cv_results['test_kappa']}")
+    print(f"Mean Cross-Validation Kappa: {round(cv_results['test_kappa'].mean(), 2)}")
+    
+    return cv_results
+
+
+def plot_prediction_distributions(X_test, y_test, y_pred, feature_1='relationships', feature_2='founded_at_year'):
+    """
+    Plots the distribution of specified features for correct and incorrect predictions.
+
+    Parameters:
+    - X_test: DataFrame containing the test features.
+    - y_test: Actual target values for the test set.
+    - y_pred: Predicted target values.
+    - feature_1: The name of the first feature to plot (default is 'relationships').
+    - feature_2: The name of the second feature to plot (default is 'founded_at_year').
+    """
+    
+    # Create a DataFrame to store results
+    results_df = X_test.copy()
+    results_df['actual'] = y_test
+    results_df['predicted'] = y_pred
+    results_df['correct'] = (y_pred == y_test)
+
+    # Separate correct and incorrect predictions
+    correct_predictions = results_df[results_df['correct'] == True]
+    incorrect_predictions = results_df[results_df['correct'] == False]
+
+    plt.figure(figsize=(14, 5))
+
+    # Plot distribution for the first feature on the left
+    plt.subplot(1, 2, 1)
+    sns.kdeplot(correct_predictions[feature_1], shade=True, label='Correct', color='g')
+    sns.kdeplot(incorrect_predictions[feature_1], shade=True, label='Incorrect', color='r')
+    plt.title(f'Distribution of "{feature_1}"')
+    plt.legend()
+
+    # Plot distribution for the second feature on the right
+    plt.subplot(1, 2, 2)
+    sns.kdeplot(correct_predictions[feature_2], shade=True, label='Correct', color='g')
+    sns.kdeplot(incorrect_predictions[feature_2], shade=True, label='Incorrect', color='r')
+    plt.title(f'Distribution of "{feature_2}"')
+    plt.legend()
+
+    # Add a big title to the entire figure
+    plt.suptitle('High Effect Feature Distributions for Correct and Incorrect Predictions', fontsize=16, y=1.05)
+
+    # Adjust layout for better spacing
+    plt.tight_layout()
+    plt.show()
+
 
 
 

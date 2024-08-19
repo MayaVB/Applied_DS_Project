@@ -1,0 +1,9 @@
+from scipy.stats import spearmanr, pearsonr
+
+def print_correlations_Spearman_and_Pearson(col1, status_code):
+    # Calculate Spearman and Pearson correlations
+    spearman_corr, spearman_p_value = spearmanr(col1, status_code)
+    pearson_corr, pearson_p_value = pearsonr(col1, status_code)
+
+    print(f"Spearman correlation: {spearman_corr}, p-value: {spearman_p_value}")
+    print(f"Pearson correlation: {pearson_corr}, p-value: {pearson_p_value}")
