@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
-from sklearn.metrics import balanced_accuracy_score
+from sklearn.metrics import balanced_accuracy_score, make_scorer, f1_score, cohen_kappa_score
 from sklearn.metrics import roc_curve, auc
 from sklearn.metrics import ConfusionMatrixDisplay
 from sklearn.model_selection import StratifiedKFold, cross_validate
-from sklearn.metrics import make_scorer, balanced_accuracy_score, precision_score, recall_score, f1_score, cohen_kappa_score
+
 from scipy.stats import spearmanr, pearsonr
 
 

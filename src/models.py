@@ -7,6 +7,30 @@ from getdata import add_nasdaq_annual_changes, add_economic_indicators
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from preprocess import preprocess_data, load_data
+from sklearn.model_selection import GridSearchCV
+
+
+def train_rfv2_model(X_train, y_train):
+    # Define hyperparameters for tuning
+    param_grid = {
+        'n_estimators': [150,200,250],
+        'max_depth': [35,40,45],
+        'min_samples_split': [2,3],
+        'min_samples_leaf': [2, 4],
+        'bootstrap': [True, False]
+    }
+    
+    # Initialize the Random Forest model
+    rf_model = RandomForestClassifier(random_state=42, class_weight='balanced')
+
+    # Perform grid search with cross-validation
+    grid_search = GridSearchCV(estimator=rf_model, param_grid=param_grid, cv=5, scoring='roc_auc', verbose=1, n_jobs=-1)
+    grid_search.fit(X_train, y_train)
+
+    # Get the best model from the grid search
+    best_rf_model = grid_search.best_estimator_
+    
+    return best_rf_model
 
 
 def train_xgb_model(X_train, y_train):
@@ -81,17 +105,22 @@ def main():
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=20)
     
     # Train predict and evaluate models
+    rfv2_clf = train_rfv2_model(X_train, y_train)
+    rfv2_pred, rv2_prob = predict_model(rfv2_clf, X_test)
+    evaluate_model(y_test, rfv2_pred, rv2_prob, threshold=0.7)
+    
+    # Train predict and evaluate models
     xgb_clf = train_xgb_model(X_train, y_train)
     xgb_pred, xgb_prob = predict_model(xgb_clf, X_test)
-    evaluate_model(y_test, xgb_pred, xgb_prob, threshold=0.7)
+    # evaluate_model(y_test, xgb_pred, xgb_prob, threshold=0.7)
     
     rf_clf = train_rf_model(X_train, y_train)
     rf_pred, rf_prob = predict_model(rf_clf, X_test)
-    evaluate_model(y_test, rf_pred, rf_prob)
+    # evaluate_model(y_test, rf_pred, rf_prob)
     
     svm_clf = train_svm_model(X_train, y_train)
     svm_pred, svm_prob = predict_model(svm_clf, X_test)
-    evaluate_model(y_test, svm_pred, svm_prob)
+    # evaluate_model(y_test, svm_pred, svm_prob)
 
 if __name__ == "__main__":
     main()
