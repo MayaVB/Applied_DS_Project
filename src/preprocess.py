@@ -12,12 +12,11 @@ from printstatistics import print_correlations_Spearman_and_Pearson
 def load_data(file_path):
     """Load the dataset from a CSV file."""
     return pd.read_csv(file_path)
-
-
+    
 def preprocess_data(df, useKNNImputer=False):
     """Preprocess the data: encoding categorical features, and scaling numerical features."""   
     # Create label
-    y = df['status'].map({'acquired': 1, 'closed': 0})
+    #y = df['status'].map({'acquired': 1, 'closed': 0})
     
     # Count the occurrences of each city
     city_counts = df['city'].value_counts()
@@ -83,9 +82,15 @@ def preprocess_data(df, useKNNImputer=False):
     else:
         processed_df.fillna(processed_df.mean(), inplace=True)
         
+    return processed_df #, y
+
+def preprocess_data_classifier(df, useKNNImputer=False):
+    """Preprocess the data: encoding categorical features, and scaling numerical features."""   
+    # Create label
+    y = df['status'].map({'acquired': 1, 'closed': 0})
+    processed_df = preprocess_data(df, useKNNImputer)
     return processed_df, y
-
-
+    
 def perform_pca(processed_df, n_components=None, thereshold_PCA=0.85):
     """Performs PCA on the processed data and returns the principal components."""
     pca = PCA(n_components=n_components)
