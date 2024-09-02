@@ -19,11 +19,47 @@ def preprocess_data(df, useKNNImputer=False):
     # Create label
     y = df['status'].map({'acquired': 1, 'closed': 0})
     
+    # Count the occurrences of each city
+    city_counts = df['city'].value_counts()
+
+    # Set a threshold (e.g., categories that appear less than 3 times will be considered rare)
+    threshold = 2
+
+    # Replace rare categories with 'Other'
+    df['city'] = df['city'].apply(lambda x: x if city_counts[x] >= threshold else 'Other')
+
     # Drop unnecessary columns
     df = df.drop(columns=['status', 'founded_at', 'name', 'id', 'state_code', 'object_id', 'labels', 'closed_at', 'Unnamed: 0', 
-                'Unnamed: 6', 'zip_code', 'city', 'closed_at'])
-    X = df
+                'Unnamed: 6', 'zip_code', 'closed_at'])
     
+    # combine rare cities
+    category_counts = df['city'].value_counts()
+    threshold = 3 # Set a threshold (e.g., cities that appear less than 3 times will be considered rare)
+    df['city'] = df['city'].apply(lambda x: x if category_counts[x] >= threshold else 'Rare')    # Replace rare cities with 'Rare'
+    
+    df = df.drop(columns=['is_software', 'is_web', 'is_mobile', 'is_enterprise', 'is_advertising', 'is_gamesvideo', 'is_ecommerce', 'is_biotech',
+                'is_consulting', 'is_othercategory'])
+    
+    # normalize avg_participants feature
+    data_mean = df['avg_participants'].mean()
+    data_std = df['avg_participants'].std()
+    cut_off = data_std * 3
+    lower_bound = data_mean - cut_off
+    upper_bound = data_mean + cut_off
+    df.loc[(df['avg_participants'] > upper_bound) | (df['avg_participants'] < lower_bound)]
+    
+    # normalize funding_total_usd feature
+    data_mean = df['funding_total_usd'].mean()
+    data_std = df['funding_total_usd'].std()
+    cut_off = data_std * 3
+    lower_bound = data_mean - cut_off
+    upper_bound = data_mean + cut_off
+    df.loc[(df['funding_total_usd'] > upper_bound) | (df['funding_total_usd'] < lower_bound)]
+    
+    df = df.drop(columns=['city'])
+    
+    X = df
+
     # Identify categorical and numerical columns
     categorical_columns = X.select_dtypes(include=['object']).columns
     numerical_columns = X.select_dtypes(include=['number']).columns
