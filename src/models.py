@@ -75,12 +75,12 @@ def evaluate_model(y_test, y_pred, y_prob, threshold=0.7):
     recall = recall_score(y_test, y_pred_threshold)
     
     # Print results
-    # print(f'Threshold: {threshold}')
-    # print(f'AUC-ROC: {round(auc_roc, 2)}')
-    # print(f'Accuracy: {round(accuracy, 2)}')
-    # print(f'Balanced Accuracy: {round(balanced_acc, 2)}')
-    # print('Classification Report:')
-    # print(report)
+    print(f'Threshold: {threshold}')
+    print(f'AUC-ROC: {round(auc_roc, 2)}')
+    print(f'Accuracy: {round(accuracy, 2)}')
+    print(f'Balanced Accuracy: {round(balanced_acc, 2)}')
+    print('Classification Report:')
+    print(report)
     
     # Confusion Matrix
     show_ConfusionMatrix_test(y_test, y_pred_threshold)
