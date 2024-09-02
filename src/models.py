@@ -7,7 +7,9 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier  # Import DecisionTreeClassifier
 from eval import show_ConfusionMatrix_test, get_precision_and_recall
 from getdata import add_nasdaq_annual_changes, add_economic_indicators
-from preprocess import preprocess_data, load_data
+from preprocess import preprocess_data
+from utils import load_data
+
 
 def train_rfv2_model(X_train, y_train):
     # Define hyperparameters for tuning
@@ -79,11 +81,11 @@ def evaluate_model(y_test, y_pred, y_prob, threshold=0.7):
     print(f'AUC-ROC: {round(auc_roc, 2)}')
     print(f'Accuracy: {round(accuracy, 2)}')
     print(f'Balanced Accuracy: {round(balanced_acc, 2)}')
-    print('Classification Report:')
-    print(report)
+    # print('Classification Report:')
+    # print(report)
     
     # Confusion Matrix
-    show_ConfusionMatrix_test(y_test, y_pred_threshold)
+    # show_ConfusionMatrix_test(y_test, y_pred_threshold)
     # precision, recall = get_precision_and_recall(y_test, y_pred_threshold)
     print(f"Precision (Test): {precision}")
     print(f"Recall (Test): {recall}")
