@@ -45,7 +45,7 @@ def evaluate_regression_model(y_test, y_pred, tolerance = 0.10):
   accuracy = (abs((y_pred - y_test) / y_test) <= tolerance).mean()
   print(f"Custom Accuracy (within ±10%): {accuracy * 100:.2f}%")
 
-def train_and_evaluate(X, y, graph_title_text):
+def train_and_evaluate_r(X, y, graph_title_text):
   # split the data
   X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state)
 
