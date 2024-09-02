@@ -28,7 +28,7 @@ def scatter_plot_with_regression_line(y_test, y_pred, text):
   plt.grid(True)
   plt.show()
 
-def evaluate_regression_model(y_test, y_pred, tolerance = 0.10):
+def evaluate_regression_model(y_test, y_pred, tolerance):
   # Mean Squared Error (MSE)
   mse = mean_squared_error(y_test, y_pred)
   print(f"Mean Squared Error (MSE): {round(mse, 2)}")
@@ -52,7 +52,7 @@ def feature_importance(xgb_regressor):
   plt.title('Top 10 Important Features')
   plt.show()
   
-def train_and_evaluate_r(X, y, random_state, graph_title_text):
+def train_and_evaluate_r(X, y, random_state, graph_title_text, tolerance = 0.10):
   # split the data
   X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state)
 
@@ -65,7 +65,7 @@ def train_and_evaluate_r(X, y, random_state, graph_title_text):
   # Make predictions on the test set
   y_pred = xgb_regressor.predict(X_test)
 
-  evaluate_regression_model(y_test, y_pred)
+  evaluate_regression_model(y_test, y_pred, tolerance)
   scatter_plot_with_regression_line(y_test, y_pred, graph_title_text)
   feature_importance(xgb_regressor)
   return xgb_regressor, X_test, y_test, y_pred
