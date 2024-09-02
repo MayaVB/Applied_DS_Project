@@ -68,4 +68,4 @@ def train_and_evaluate_r(X, y, random_state, graph_title_text):
   evaluate_regression_model(y_test, y_pred)
   scatter_plot_with_regression_line(y_test, y_pred, graph_title_text)
   feature_importance(xgb_regressor)
-  return xgb_regressor
+  return xgb_regressor, X_test, y_test, y_pred
