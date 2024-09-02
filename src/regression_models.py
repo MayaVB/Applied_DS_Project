@@ -45,6 +45,13 @@ def evaluate_regression_model(y_test, y_pred, tolerance = 0.10):
   accuracy = (abs((y_pred - y_test) / y_test) <= tolerance).mean()
   print(f"Custom Accuracy (within ±10%): {accuracy * 100:.2f}%")
 
+def feature_importance(xgb_regressor):
+  # Plot feature importance
+  plt.figure(figsize=(10, 8))
+  xgb.plot_importance(xgb_regressor, importance_type='weight', max_num_features=10)
+  plt.title('Top 10 Important Features')
+  plt.show()
+  
 def train_and_evaluate_r(X, y, random_state, graph_title_text):
   # split the data
   X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_state)
@@ -60,3 +67,5 @@ def train_and_evaluate_r(X, y, random_state, graph_title_text):
 
   evaluate_regression_model(y_test, y_pred)
   scatter_plot_with_regression_line(y_test, y_pred, graph_title_text)
+  feature_importance(xgb_regressor)
+  return xgb_regressor
