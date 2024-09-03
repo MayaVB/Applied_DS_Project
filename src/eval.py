@@ -155,7 +155,7 @@ def perform_cross_validation(model, X_train, y_train, n_splits=5, random_state=4
     print(f"Cross-Validation Kappa Scores: {cv_results['test_kappa']}")
     print(f"Mean Cross-Validation Kappa: {round(cv_results['test_kappa'].mean(), 2)}")
     
-    return cv_results, scoring
+    return cv_results
 
 
 def plot_prediction_distributions(X_test, y_test, y_pred, feature_1='relationships', feature_2='founded_at_year'):
