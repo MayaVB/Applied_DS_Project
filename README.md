@@ -58,6 +58,7 @@ The repository is organized as follows:
    ├── 📄 utils.py                          # utility file
    |
    └──
+```
 
 ## Getting Started
 
