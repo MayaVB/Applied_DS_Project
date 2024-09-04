@@ -6,41 +6,44 @@ import wbdata  # World Bank data API
 
 
 def add_nasdaq_annual_changes(df):
+    # Years of interest
+    years = np.arange(1984, 2024).tolist()
+
     # Convert the date column to datetime
     df['founded_at_date'] = pd.to_datetime(df['founded_at'])
 
     # Extract year, month, and day into separate columns
     df['founded_at_year'] = df['founded_at_date'].dt.year
-    df['founded_at_month'] = df['founded_at_date'].dt.month
-    df['founded_at_day'] = df['founded_at_date'].dt.day
-    
-    # Define the range of years we're interested in
-    years = np.arange(1984, 2024).tolist()
-    
-    # Download NASDAQ index data from Yahoo Finance, using monthly intervals from 1984 to 2024
+
+    # Download data for the NASDAQ index
     nasdaq_data = yf.download('^IXIC', start='1984-01-01', end='2024-01-01', interval='1mo')
-    
-    # Extract the year from the index (date) and add it as a new column
+
+    # Calculate annual changes
     nasdaq_data['Year'] = nasdaq_data.index.year
-    
-    # Group the data by year and calculate the annual percentage change in the closing price
     nasdaq_annual = nasdaq_data.groupby('Year')['Close'].last().pct_change().reset_index()
-    nasdaq_annual.columns = ['Year', 'NASDAQ_Annual_Change']  # Rename columns for clarity
-    
-    # Filter the annual data to include only the years in the defined range
+    nasdaq_annual.columns = ['Year', 'NASDAQ_Annual_Change']
+
+    # Filter for the years of interest
     nasdaq_annual = nasdaq_annual[nasdaq_annual['Year'].isin(years)]
-    nasdaq_annual.set_index('Year', inplace=True)  # Set 'Year' as the index for easy lookup
+
+    # Set the 'Year' column as the index
+    nasdaq_annual.set_index('Year', inplace=True)
+
+    # Create new columns for each year
+    df['nasdaq_annual_changes_at_year_0'] = df['founded_at_year'].apply(lambda x: nasdaq_annual['NASDAQ_Annual_Change'].get(x, None))
+    df['nasdaq_annual_changes_at_year_1'] = df['founded_at_year'].apply(lambda x: nasdaq_annual['NASDAQ_Annual_Change'].get(x-1, None))
+    df['nasdaq_annual_changes_at_year_2'] = df['founded_at_year'].apply(lambda x: nasdaq_annual['NASDAQ_Annual_Change'].get(x-2, None))
+    df['nasdaq_annual_changes_at_year_3'] = df['founded_at_year'].apply(lambda x: nasdaq_annual['NASDAQ_Annual_Change'].get(x-3, None))
+    df['nasdaq_annual_changes_at_year_4'] = df['founded_at_year'].apply(lambda x: nasdaq_annual['NASDAQ_Annual_Change'].get(x-4, None))
+    df['nasdaq_annual_changes_at_year_5'] = df['founded_at_year'].apply(lambda x: nasdaq_annual['NASDAQ_Annual_Change'].get(x-5, None))
+    df['nasdaq_annual_changes_at_year_6'] = df['founded_at_year'].apply(lambda x: nasdaq_annual['NASDAQ_Annual_Change'].get(x-6, None))
+    df['nasdaq_annual_changes_at_year_7'] = df['founded_at_year'].apply(lambda x: nasdaq_annual['NASDAQ_Annual_Change'].get(x-7, None))
+    df['nasdaq_annual_changes_at_year_8'] = df['founded_at_year'].apply(lambda x: nasdaq_annual['NASDAQ_Annual_Change'].get(x-8, None))
+    df['nasdaq_annual_changes_at_year_9'] = df['founded_at_year'].apply(lambda x: nasdaq_annual['NASDAQ_Annual_Change'].get(x-9, None))
+    df['nasdaq_annual_changes_at_year_10'] = df['founded_at_year'].apply(lambda x: nasdaq_annual['NASDAQ_Annual_Change'].get(x-10, None))
     
-    # Find the maximum founding year in the DataFrame to determine the range of years to add
-    max_year = df['founded_at_year'].max()
-    
-    # Add a new column for each year relative to the founding year, containing the NASDAQ annual changes
-    for year in range(max_year, max_year - 11, -1):
-        year_index = max_year - year
-        df[f'nasdaq_annual_changes_at_year_{year_index}'] = df['founded_at_year'].apply(
-            lambda x: nasdaq_annual.loc[year, 'NASDAQ_Annual_Change'] if year in nasdaq_annual.index else np.nan
-        )
-    
+    df = df.drop(columns=['founded_at_year', 'founded_at_date'])
+
     return df
 
 
@@ -90,6 +93,8 @@ def add_economic_indicators(df, indicator_code):
         df[f'{key_word}_growth_at_year_{i}'] = df['founded_at_year'].apply(
             lambda x: data.loc[x - i, 'Economic_Indicator'] if (x - i) in data.index else np.nan
         )
+    
+    df = df.drop(columns=['founded_at_year', 'founded_at_date'])
     
     return df
 
