@@ -37,13 +37,65 @@ def train_xgb_model(X_train, y_train):
     """Train an XGBoost classifier and return the trained model."""
     xgb_clf = XGBClassifier(use_label_encoder=False, eval_metric='mlogloss')
     xgb_clf.fit(X_train, y_train)
+    
+    # param_grid = {
+    # 'n_estimators': [100, 200, 300],
+    # 'learning_rate': [0.01, 0.1, 0.2],
+    # 'max_depth': [3, 6, 9],
+    # 'min_child_weight': [1, 5, 10],
+    # 'subsample': [0.8, 0.9, 1.0],
+    # 'colsample_bytree': [0.8, 0.9, 1.0],
+    # 'gamma': [0, 0.1, 0.2]
+    # }   
+
+    # # Create the model
+    # xgb_clf = XGBClassifier(use_label_encoder=False, eval_metric='mlogloss')
+
+    # # Create GridSearchCV object
+    # grid_search = GridSearchCV(estimator=xgb_clf, param_grid=param_grid, 
+    #                         cv=5, n_jobs=-1, verbose=2)
+
+    # # Fit GridSearchCV
+    # grid_search.fit(X_train, y_train)
+
+    # # Get the best model
+    # best_xgb_clf = grid_search.best_estimator_
+    
+    
     return xgb_clf
 
 def train_rf_model(X_train, y_train):
     """Train a RandomForest classifier and return the trained model."""
+    # rf_clf = RandomForestClassifier()
+    # rf_clf.fit(X_train, y_train)
+    
+    
+    
+    
+    # Define the parameter grid
+    param_grid = {
+        'n_estimators': [100, 200, 300],
+        'max_depth': [None, 10, 20, 30],
+        'min_samples_split': [2, 5, 10],
+        'min_samples_leaf': [1, 2, 4],
+        'max_features': ['auto', 'sqrt', 'log2']
+    }
+
+    # Create the model
     rf_clf = RandomForestClassifier()
-    rf_clf.fit(X_train, y_train)
-    return rf_clf
+
+    # Create GridSearchCV object
+    grid_search = GridSearchCV(estimator=rf_clf, param_grid=param_grid, 
+                            cv=5, n_jobs=-1, verbose=2)
+
+    # Fit GridSearchCV
+    grid_search.fit(X_train, y_train)
+
+    # Get the best model
+    best_rf_clf = grid_search.best_estimator_
+        
+    
+    return best_rf_clf
 
 def train_svm_model(X_train, y_train):
     """Train a Support Vector Machine classifier and return the trained model."""
