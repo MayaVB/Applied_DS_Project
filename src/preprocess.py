@@ -108,11 +108,14 @@ def remove_outliers(df, column, threshold=3):
     return df_cleaned, outliers
 
 
-def oneHot_encode_columes(df, categorical_columns):
+def oneHot_encode_columes(df, categorical_columns, remove_feature_names=True):
     encoder = OneHotEncoder(sparse=False)
     encoded_categorical = encoder.fit_transform(df[categorical_columns])
-    encoded_categorical_df = pd.DataFrame(encoded_categorical, columns=encoder.get_feature_names_out(categorical_columns))
-    
+    if remove_feature_names:
+        encoded_categorical_df = pd.DataFrame(encoded_categorical, columns=encoder.get_feature_names_out(categorical_columns))
+    else:
+        encoded_categorical_df = pd.DataFrame(encoded_categorical)
+
     return encoded_categorical_df
 
 
@@ -124,7 +127,7 @@ def standard_scale_columes(df, numerical_columns):
     return scaled_numerical_df
 
 
-def preprocess_data_classifier(df, useKNNImputer=False):
+def preprocess_data_classifier(df, useKNNImputer=False, remove_feature_names=True):
     """Preprocess the data: encoding categorical features, and scaling numerical features."""   
     
     df = process_funding_dates(df)
@@ -154,7 +157,7 @@ def preprocess_data_classifier(df, useKNNImputer=False):
     
     # Identify categorical columns
     categorical_columns = df.select_dtypes(include=['object']).columns
-    encoded_categorical_df = oneHot_encode_columes(df, categorical_columns)
+    encoded_categorical_df = oneHot_encode_columes(df, categorical_columns, remove_feature_names=remove_feature_names)
     
     # Identify numerical columns
     numerical_columns = df.select_dtypes(include=['number']).columns
@@ -173,7 +176,7 @@ def preprocess_data_classifier(df, useKNNImputer=False):
     else:
         processed_df.fillna(processed_df.mean(), inplace=True)
         
-    # processed_df.to_csv('processed_df.csv', index=False)   
+    processed_df.to_csv('processed_df.csv', index=False)   
     
     return processed_df, y
 
