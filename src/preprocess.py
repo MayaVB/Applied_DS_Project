@@ -109,7 +109,7 @@ def remove_outliers(df, column, threshold=3):
 
 
 def oneHot_encode_columes(df, categorical_columns, remove_feature_names=True):
-    encoder = OneHotEncoder(sparse=False)
+    encoder = OneHotEncoder(sparse_output=False)
     encoded_categorical = encoder.fit_transform(df[categorical_columns])
     if remove_feature_names:
         encoded_categorical_df = pd.DataFrame(encoded_categorical, columns=encoder.get_feature_names_out(categorical_columns))
@@ -233,7 +233,7 @@ def preprocess_data(df, useKNNImputer=False):
     numerical_columns = X.select_dtypes(include=['number']).columns
     
     # OneHotEncode categorical columns
-    encoder = OneHotEncoder(sparse=False)
+    encoder = OneHotEncoder(sparse_output=False)
     encoded_categorical = encoder.fit_transform(X[categorical_columns])
     encoded_categorical_df = pd.DataFrame(encoded_categorical, columns=encoder.get_feature_names_out(categorical_columns))
     
