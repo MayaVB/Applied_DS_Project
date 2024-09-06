@@ -135,9 +135,10 @@ def preprocess_data_classifier(df, useKNNImputer=False):
     
     df, outliers2 = remove_outliers(df, column='funding_total_usd', threshold=3) # !Use with caution – this removes data
     
+    df, outliers2 = remove_outliers(df, column='relationships', threshold=3) # !Use with caution – this removes data
+    
     # df = feature_log_scaler(df, column='funding_total_usd')
 
-    
     # df = cap_feature(df, column='relationships', quantile=0.95)
     
     # Create label
@@ -172,7 +173,7 @@ def preprocess_data_classifier(df, useKNNImputer=False):
     else:
         processed_df.fillna(processed_df.mean(), inplace=True)
         
-    processed_df.to_csv('processed_df.csv', index=False)   
+    # processed_df.to_csv('processed_df.csv', index=False)   
     
     return processed_df, y
 
