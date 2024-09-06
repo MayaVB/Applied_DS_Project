@@ -66,36 +66,36 @@ def train_xgb_model(X_train, y_train):
 
 def train_rf_model(X_train, y_train):
     """Train a RandomForest classifier and return the trained model."""
-    # rf_clf = RandomForestClassifier()
-    # rf_clf.fit(X_train, y_train)
-    
-    
-    
-    
-    # Define the parameter grid
-    param_grid = {
-        'n_estimators': [100, 200, 300],
-        'max_depth': [None, 10, 20, 30],
-        'min_samples_split': [2, 5, 10],
-        'min_samples_leaf': [1, 2, 4],
-        'max_features': ['auto', 'sqrt', 'log2']
-    }
-
-    # Create the model
     rf_clf = RandomForestClassifier()
+    rf_clf.fit(X_train, y_train)
+    
+    
+    
+    
+    # # Define the parameter grid
+    # param_grid = {
+    #     'n_estimators': [100, 200, 300],
+    #     'max_depth': [None, 10, 20, 30],
+    #     'min_samples_split': [2, 5, 10],
+    #     'min_samples_leaf': [1, 2, 4],
+    #     'max_features': ['auto', 'sqrt', 'log2']
+    # }
 
-    # Create GridSearchCV object
-    grid_search = GridSearchCV(estimator=rf_clf, param_grid=param_grid, 
-                            cv=5, n_jobs=-1, verbose=2)
+    # # Create the model
+    # rf_clf = RandomForestClassifier()
 
-    # Fit GridSearchCV
-    grid_search.fit(X_train, y_train)
+    # # Create GridSearchCV object
+    # grid_search = GridSearchCV(estimator=rf_clf, param_grid=param_grid, 
+    #                         cv=5, n_jobs=-1, verbose=2)
 
-    # Get the best model
-    best_rf_clf = grid_search.best_estimator_
+    # # Fit GridSearchCV
+    # grid_search.fit(X_train, y_train)
+
+    # # Get the best model
+    # best_rf_clf = grid_search.best_estimator_
         
     
-    return best_rf_clf
+    return rf_clf
 
 def train_svm_model(X_train, y_train):
     """Train a Support Vector Machine classifier and return the trained model."""
