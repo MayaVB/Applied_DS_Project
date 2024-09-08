@@ -7,7 +7,7 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier  # Import DecisionTreeClassifier
 from eval import show_ConfusionMatrix_test, get_precision_and_recall
 from getdata import add_nasdaq_annual_changes, add_economic_indicators
-from preprocess import preprocess_data
+from preprocess import preprocess_data_classifier
 from utils import load_data
 
 
@@ -163,7 +163,7 @@ def main():
     df = add_economic_indicators(df, indicator_code)
     
     # Preprocess the data
-    X, y = preprocess_data(df)
+    X, y = preprocess_data_classifier(df)
     
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=20)
