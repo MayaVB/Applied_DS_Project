@@ -251,7 +251,7 @@ def main():
     df = load_data('data/startup_data.csv')
 
     # Preprocess data
-    processed_df = preprocess_data(df)
+    processed_df = preprocess_data_classifier(df)
 
     # Separate the 'status' column
     status = df['status'].map({'acquired': 1, 'closed': 0})
