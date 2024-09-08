@@ -33,7 +33,7 @@ def process_funding_dates(df):
 
 
 def feature_log_scaler(df, column):
-    df[column] = np.log(df[column])
+    df[f'{column}_log'] = np.log(df[column])
     df = df.drop(columns=column)
     return df
 
