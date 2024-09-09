@@ -181,6 +181,80 @@ def preprocess_data_classifier(df, useKNNImputer=False, remove_feature_names=Tru
     return processed_df, y
 
 
+def preprocess_data(df, useKNNImputer=False):
+    """Preprocess the data: encoding categorical features, and scaling numerical features."""   
+    # Create label
+    #y = df['status'].map({'acquired': 1, 'closed': 0})
+
+    # Count the occurrences of each city
+    city_counts = df['city'].value_counts()
+
+    # Set a threshold (e.g., categories that appear less than 3 times will be considered rare)
+    threshold = 2
+
+    # Replace rare categories with 'Other'
+    df['city'] = df['city'].apply(lambda x: x if city_counts[x] >= threshold else 'Other')
+
+    # Drop unnecessary columns
+    df = df.drop(columns=['status', 'founded_at', 'name', 'id', 'state_code', 'object_id', 'labels', 'closed_at', 'Unnamed: 0', 
+                'Unnamed: 6', 'zip_code', 'closed_at'])
+
+    # combine rare cities
+    category_counts = df['city'].value_counts()
+    threshold = 3 # Set a threshold (e.g., cities that appear less than 3 times will be considered rare)
+    df['city'] = df['city'].apply(lambda x: x if category_counts[x] >= threshold else 'Rare')    # Replace rare cities with 'Rare'
+
+    df = df.drop(columns=['is_software', 'is_web', 'is_mobile', 'is_enterprise', 'is_advertising', 'is_gamesvideo', 'is_ecommerce', 'is_biotech',
+                'is_consulting', 'is_othercategory'])
+
+    # normalize avg_participants feature
+    data_mean = df['avg_participants'].mean()
+    data_std = df['avg_participants'].std()
+    cut_off = data_std * 3
+    lower_bound = data_mean - cut_off
+    upper_bound = data_mean + cut_off
+    df.loc[(df['avg_participants'] > upper_bound) | (df['avg_participants'] < lower_bound)]
+
+    # normalize funding_total_usd feature
+    data_mean = df['funding_total_usd'].mean()
+    data_std = df['funding_total_usd'].std()
+    cut_off = data_std * 3
+    lower_bound = data_mean - cut_off
+    upper_bound = data_mean + cut_off
+    df.loc[(df['funding_total_usd'] > upper_bound) | (df['funding_total_usd'] < lower_bound)]
+
+    df = df.drop(columns=['city'])
+
+    X = df
+
+    # Identify categorical and numerical columns
+    categorical_columns = X.select_dtypes(include=['object']).columns
+    numerical_columns = X.select_dtypes(include=['number']).columns
+
+    # OneHotEncode categorical columns
+    encoder = OneHotEncoder(sparse_output=False)
+    encoded_categorical = encoder.fit_transform(X[categorical_columns])
+    encoded_categorical_df = pd.DataFrame(encoded_categorical, columns=encoder.get_feature_names_out(categorical_columns))
+
+    # Standardize numerical columns
+    scaler = StandardScaler()
+    scaled_numerical = scaler.fit_transform(X[numerical_columns])
+    scaled_numerical_df = pd.DataFrame(scaled_numerical, columns=numerical_columns)
+
+    # Combine encoded categorical and scaled numerical data
+    processed_df = pd.concat([encoded_categorical_df, scaled_numerical_df], axis=1)
+
+    if useKNNImputer:
+        knn_imputer = KNNImputer(n_neighbors=5)
+        processed_df = pd.DataFrame(knn_imputer.fit_transform(processed_df), columns=processed_df.columns)
+    else:
+        processed_df.fillna(processed_df.mean(), inplace=True)
+
+    # df.to_csv('df.csv', index=False)
+
+    return processed_df #, y
+
+
 def perform_pca(processed_df, n_components=None, thereshold_PCA=0.85):
     """Performs PCA on the processed data and returns the principal components."""
     pca = PCA(n_components=n_components)
