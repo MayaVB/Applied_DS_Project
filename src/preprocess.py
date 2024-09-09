@@ -132,7 +132,7 @@ def preprocess_data_classifier(df, useKNNImputer=False, remove_feature_names=Tru
     
     df = process_funding_dates(df)
     
-    df = combine_rares_categories(df, column='city', threshold=3)
+    df = combine_rares_categories(df, column='city', threshold=2)
     
     # df = cap_feature(df, column='avg_participants', quantile=0.98) # !Use with caution – this removes data
     
