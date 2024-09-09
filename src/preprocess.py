@@ -127,12 +127,19 @@ def standard_scale_columes(df, numerical_columns):
     return scaled_numerical_df
 
 
+def add_feature_is_in_main_hub(df):
+    us_main_hubs = ['San Francisco', 'New York', 'Austin', 'Boston', 'Los Angeles', 'Seattle', 'San Jose']
+    df['is_us_main_hub'] = df['city'].apply(lambda x: 1 if x in us_main_hubs else 0)
+    return df
+
+
 def preprocess_data_classifier(df, useKNNImputer=False, remove_feature_names=True):
     """Preprocess the data: encoding categorical features, and scaling numerical features."""   
     
     df = process_funding_dates(df)
     
-    df = combine_rares_categories(df, column='city', threshold=2)
+    # df = combine_rares_categories(df, column='city', threshold=1)
+    # df = add_feature_is_in_main_hub(df)
     
     # df = cap_feature(df, column='avg_participants', quantile=0.98) # !Use with caution – this removes data
     
@@ -172,6 +179,8 @@ def preprocess_data_classifier(df, useKNNImputer=False, remove_feature_names=Tru
     # fill missing values
     if useKNNImputer:
         knn_imputer = KNNImputer(n_neighbors=5)
+        if not remove_feature_names:
+            processed_df.columns = processed_df.columns.astype(str)
         processed_df = pd.DataFrame(knn_imputer.fit_transform(processed_df), columns=processed_df.columns)
     else:
         processed_df.fillna(processed_df.mean(), inplace=True)
