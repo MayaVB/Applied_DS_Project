@@ -195,7 +195,7 @@ def preprocess_data_classifier(df, useKNNImputer=False, remove_feature_names=Tru
     
     df, outliers2 = remove_outliers(df, column='relationships', threshold=2) # !Use with caution – this removes data
     
-    df = add_distance_bin_from_hub_feature(df)
+    # df = add_distance_bin_from_hub_feature(df)
     
     # df = feature_log_scaler(df, column='funding_total_usd')
 
