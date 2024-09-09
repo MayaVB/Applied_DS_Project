@@ -9,6 +9,8 @@ import sys
 from printstatistics import print_correlations_Spearman_and_Pearson
 from utils import load_data
 import pandas as pd
+from math import radians, cos, sin, asin, sqrt
+
 
 
 def process_funding_dates(df):
@@ -127,9 +129,56 @@ def standard_scale_columes(df, numerical_columns):
     return scaled_numerical_df
 
 
-def add_feature_is_in_main_hub(df):
-    us_main_hubs = ['San Francisco', 'New York', 'Austin', 'Boston', 'Los Angeles', 'Seattle', 'San Jose']
-    df['is_us_main_hub'] = df['city'].apply(lambda x: 1 if x in us_main_hubs else 0)
+
+def haversine(lat1, lon1, lat2, lon2):
+    # Convert decimal degrees to radians
+    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+    # Haversine formula
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a))
+    r = 6371  # Radius of Earth in kilometers
+    return c * r
+
+def min_distance_to_hub(lat, lon, hub_coords):
+    distances = [haversine(lat, lon, coords[0], coords[1]) for coords in hub_coords.values()]
+    return min(distances)  # Return the smallest distance to any hub
+
+def closest_hub(lat, lon, hub_coords):
+    distances = {hub: haversine(lat, lon, coords[0], coords[1]) for hub, coords in hub_coords.items()}
+    return min(distances, key=distances.get)  # Return the hub with the smallest distance
+
+def closest_hub(lat, lon, hub_coords):
+    distances = {hub: haversine(lat, lon, coords[0], coords[1]) for hub, coords in hub_coords.items()}
+    return min(distances, key=distances.get)  # Return the hub with the smallest distance
+
+
+def add_distance_bin_from_hub_feature(df):
+    # Define coordinates for multiple US startup hubs
+    main_hub_coords = {
+        'San Francisco': (37.7749, -122.4194),
+        'New York': (40.7128, -74.0060),
+        'Austin': (30.2672, -97.7431),
+        'Boston': (42.3601, -71.0589),
+        'Los Angeles': (34.0522, -118.2437),
+        'Seattle': (47.6062, -122.3321),
+        'San Jose': (37.3382, -121.8863)
+        }
+    
+    df['distance_from_hub'] = df.apply(lambda row: min_distance_to_hub(row['latitude'], row['longitude'], main_hub_coords), axis=1)
+    
+    # Fixed-width binning (e.g., 0-10km, 10-50km, etc.)
+    bins = [0, 10, 50, 100, np.inf]  # Define custom distance bins in km
+    labels = ['Very Close', 'Moderately Close', 'Far', 'Very Far']
+    df['distance_bin'] = pd.cut(df['distance_from_hub'], bins=bins, labels=labels)
+
+    df = df.drop(columns='distance_from_hub')
+    df = df.drop(columns=['latitude', 'longitude'])
+    
+    # optinal:
+    # df['closest_hub'] = df.apply(lambda row: closest_hub(row['latitude'], row['longitude'], main_hub_coords), axis=1)
+    
     return df
 
 
@@ -139,13 +188,14 @@ def preprocess_data_classifier(df, useKNNImputer=False, remove_feature_names=Tru
     df = process_funding_dates(df)
     
     # df = combine_rares_categories(df, column='city', threshold=1)
-    # df = add_feature_is_in_main_hub(df)
     
     # df = cap_feature(df, column='avg_participants', quantile=0.98) # !Use with caution – this removes data
     
-    df, outliers2 = remove_outliers(df, column='funding_total_usd', threshold=3) # !Use with caution – this removes data
+    df, outliers1 = remove_outliers(df, column='funding_total_usd', threshold=3) # !Use with caution – this removes data
     
-    df, outliers2 = remove_outliers(df, column='relationships', threshold=3) # !Use with caution – this removes data
+    df, outliers2 = remove_outliers(df, column='relationships', threshold=2) # !Use with caution – this removes data
+    
+    df = add_distance_bin_from_hub_feature(df)
     
     # df = feature_log_scaler(df, column='funding_total_usd')
 
