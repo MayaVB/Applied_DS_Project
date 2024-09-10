@@ -8,7 +8,8 @@ from getdata import add_nasdaq_annual_changes, add_economic_indicators
 from models import train_xgb_model, train_rf_model, train_svm_model
 from models import evaluate_model, predict_model
 from printstatistics import print_correlations_Spearman_and_Pearson
-from preprocess import load_data, preprocess_data
+from preprocess import preprocess_data
+from utils import load_data
 
 ########################## MAIN ##########################
 df = load_data('data/startup_data.csv')

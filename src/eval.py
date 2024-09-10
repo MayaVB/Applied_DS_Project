@@ -12,6 +12,15 @@ from sklearn.model_selection import StratifiedKFold, cross_validate
 from scipy.stats import spearmanr, pearsonr
 
 
+def get_ratio(y_train_cv):
+    return float(y_train_cv.value_counts()[0]) / y_train_cv.value_counts()[1]
+
+
+def cross_validation_generator(X, y, fold, random_state=42):
+    skf = StratifiedKFold(n_splits=fold, random_state=random_state, shuffle=True)
+    return skf.split(X, y)
+
+
 def show_ConfusionMatrix_test(y_test, y_test_pred, test_confusion_matrix_title = "Confusion Matrix (Test)"):
     """
     Displays the confusion matrix for the test set predictions.
