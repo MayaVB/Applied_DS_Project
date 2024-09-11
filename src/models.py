@@ -348,11 +348,11 @@ def evaluate_model(y_test, y_pred, y_prob, threshold=0.7, print_metrics=False, p
     # Return results including the confusion matrix
     return {
         'Threshold': threshold,
-        'AUC-ROC': auc_roc,
-        'Accuracy': accuracy,
-        'Balanced Accuracy': balanced_acc,
-        'Precision': precision,
-        'Recall': recall
+        'AUC-ROC': round(auc_roc, 2),
+        'Accuracy': round(accuracy, 2),
+        'Balanced Accuracy': round(balanced_acc, 2),
+        'Precision': round(precision, 2),
+        'Recall': round(recall, 2)
         }
 
 
