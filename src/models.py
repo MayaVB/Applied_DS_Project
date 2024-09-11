@@ -89,6 +89,11 @@ def predict_with_ensemble_model(trained_models, X_test):
   ensemble_prob = np.array(probs).mean(axis=0)
   return ensemble_pred, ensemble_prob
 
+def train_and_calc_ensemble_metrics(models, X_train, y_train, X_test):
+  for model in models:
+    model.fit(X_train, y_train)
+  return predict_with_ensemble_model(models, X_test)
+
 def cross_validate_ensemble_using_StratifiedKFold(models, X, y, n_splits=5, random_state=None, print_avg_confusionMatrix=True, print_sum_confusionMatrix=True, print_target_distribution=True, save_feature_impact_across_folds=True, th_val=0.5):
     skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
     kappa_scores = []
