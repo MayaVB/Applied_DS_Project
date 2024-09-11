@@ -111,7 +111,7 @@ def cross_validate_ensemble_using_StratifiedKFold_short(models_for_ensemble, X, 
 
   for fold, (train_index, val_index) in enumerate(skf.split(X, y)):
       y_test_cv = y.iloc[val_index]
-      ensemble_pred, ensemble_prob = train_and_calc_ensemble_metrics(models_for_ensemble, X.iloc[train_index], y.iloc[train_index], X.iloc[val_index])
+      ensemble_pred, ensemble_prob = train_and_calc_ensemble_metrics(models_for_ensemble, X.iloc[train_index], y.iloc[train_index], X.iloc[val_index], random_state)
       res = evaluate_model(y_test_cv, ensemble_pred, ensemble_prob, threshold=th) 
       for key, value in res.items():
         metrics_arr[key].append(value)
