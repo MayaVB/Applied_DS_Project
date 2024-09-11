@@ -113,6 +113,14 @@ def main():
     # Define the World Bank indicator code for the unemployment rate and add it to the DataFrame
     indicator_code = 'SL.UEM.TOTL.ZS'  # Unemployment rate, percentage of total labor force
     df = add_economic_indicators(df, indicator_code)
+
+def augment_with_economic_parameters(df):
+  df = add_nasdaq_annual_changes(df)
+  indicator_code = 'NY.GDP.MKTP.KD.ZG'
+  df = add_economic_indicators(df, indicator_code)
+  indicator_code = 'SL.UEM.TOTL.ZS'
+  df = add_economic_indicators(df, indicator_code)
+  return df
     
 if __name__ == "__main__":
     main()
