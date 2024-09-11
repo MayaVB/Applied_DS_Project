@@ -3,12 +3,10 @@ from xgboost import XGBClassifier
 import pandas as pd
 
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.metrics import accuracy_score, classification_report, roc_auc_score, confusion_matrix, precision_score, recall_score, balanced_accuracy_score
+from sklearn.metrics import accuracy_score, classification_report, cohen_kappa_score, roc_auc_score, confusion_matrix, precision_score, recall_score, balanced_accuracy_score
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, roc_auc_score, balanced_accuracy_score, precision_score, recall_score
-from sklearn.metrics import cohen_kappa_score
 from sklearn.model_selection import StratifiedKFold
 from scipy.stats import mode
 
@@ -74,9 +72,13 @@ def predict_model(model, X_test):
     return y_pred, y_prob
 
 
-def cross_validate_ensemble_using_StratifiedKFold(models, X, y, n_splits=5, random_state=None, print_avg_confusionMatrix=True, print_sum_confusionMatrix=True, print_target_distribution=True, save_feature_impact_across_folds=True):
+def cross_validate_ensemble_using_StratifiedKFold(models, X, y, n_splits=5, random_state=None, print_avg_confusionMatrix=True, print_sum_confusionMatrix=True, print_target_distribution=True, save_feature_impact_across_folds=True, th_val=0.5):
     skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
     kappa_scores = []
+    accuracy_scores = []
+    balanced_acc_scores = []
+    precision_scores = []
+    recall_scores = []
     all_preds = []
     all_probs = []
     all_y_true = []
@@ -119,8 +121,20 @@ def cross_validate_ensemble_using_StratifiedKFold(models, X, y, n_splits=5, rand
         ensemble_prob = np.mean(fold_probs, axis=0)
 
         # Evaluate the ensemble model
-        kappa = cohen_kappa_score(y_val_cv, ensemble_pred)
+        kappa = cohen_kappa_score(y_val_cv, y_pred)
         kappa_scores.append(kappa)
+
+        accuracy = accuracy_score(y_val_cv, ensemble_prob<th_val)
+        accuracy_scores.append(accuracy)
+
+        balanced_acc = balanced_accuracy_score(y_val_cv, ensemble_prob<th_val)
+        balanced_acc_scores.append(balanced_acc)
+
+        precision = precision_score(y_val_cv, ensemble_prob<th_val)
+        precision_scores.append(precision)
+        
+        recall = recall_score(y_val_cv, ensemble_prob<th_val)
+        recall_scores.append(recall)
 
         # Collect confusion matrix for each fold
         cm = confusion_matrix(y_val_cv, ensemble_pred)
@@ -134,6 +148,10 @@ def cross_validate_ensemble_using_StratifiedKFold(models, X, y, n_splits=5, rand
 
     # Aggregate results
     mean_kappa = np.mean(kappa_scores)
+    mean_accuracy = np.mean(accuracy_scores)
+    mean_balanced_acc = np.mean(balanced_acc_scores)
+    mean_precision = np.mean(precision_scores)
+    mean_recall = np.mean(recall_scores)
     fold_targets_df = pd.concat(fold_targets)
 
     # Aggregate confusion matrices by averaging and summing across folds
@@ -152,6 +170,10 @@ def cross_validate_ensemble_using_StratifiedKFold(models, X, y, n_splits=5, rand
 
     return {
         'mean_kappa': mean_kappa,
+        'mean_accuracy': mean_accuracy,
+        'mean_balanced_acc': mean_balanced_acc,
+        'mean_precision': mean_precision,
+        'mean_recall': mean_recall,
         'all_preds': np.concatenate(all_preds),
         'all_probs': np.concatenate(all_probs),
         'all_y_true': np.concatenate(all_y_true),
@@ -163,9 +185,13 @@ def cross_validate_ensemble_using_StratifiedKFold(models, X, y, n_splits=5, rand
     }
 
 
-def cross_validate_model_using_StratifiedKFold(model, X, y, n_splits=5, random_state=None, print_avg_confusionMatrix=True, print_sum_confusionMatrix=True, print_target_distribution=True, save_feature_impact_across_folds=True):
+def cross_validate_model_using_StratifiedKFold(model, X, y, n_splits=5, random_state=None, print_avg_confusionMatrix=True, print_sum_confusionMatrix=True, print_target_distribution=True, save_feature_impact_across_folds=True, th_val=0.5):
     skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
     kappa_scores = []
+    accuracy_scores = []
+    balanced_acc_scores = []
+    precision_scores = []
+    recall_scores = []
     all_preds = []
     all_probs = []
     all_y_true = []
@@ -195,6 +221,18 @@ def cross_validate_model_using_StratifiedKFold(model, X, y, n_splits=5, random_s
         kappa = cohen_kappa_score(y_val_cv, y_pred)
         kappa_scores.append(kappa)
 
+        accuracy = accuracy_score(y_val_cv, y_prob<th_val)
+        accuracy_scores.append(accuracy)
+
+        balanced_acc = balanced_accuracy_score(y_val_cv, y_prob<th_val)
+        balanced_acc_scores.append(balanced_acc)
+
+        precision = precision_score(y_val_cv, y_prob<th_val)
+        precision_scores.append(precision)
+        
+        recall = recall_score(y_val_cv, y_prob<th_val)
+        recall_scores.append(recall)
+
         # Collect confusion matrix for each fold
         cm = confusion_matrix(y_val_cv, y_pred)
         confusion_matrices.append(cm)
@@ -207,6 +245,10 @@ def cross_validate_model_using_StratifiedKFold(model, X, y, n_splits=5, random_s
 
     # Aggregate results
     mean_kappa = np.mean(kappa_scores)
+    mean_accuracy = np.mean(accuracy_scores)
+    mean_balanced_acc = np.mean(balanced_acc_scores)
+    mean_precision = np.mean(precision_scores)
+    mean_recall = np.mean(recall_scores)
     fold_targets_df = pd.concat(fold_targets)
 
     # Aggregate confusion matrices by averaging and summing across folds
@@ -225,6 +267,10 @@ def cross_validate_model_using_StratifiedKFold(model, X, y, n_splits=5, random_s
 
     return {
         'mean_kappa': mean_kappa,
+        'mean_accuracy': mean_accuracy,
+        'mean_balanced_acc': mean_balanced_acc,
+        'mean_precision': mean_precision,
+        'mean_recall': mean_recall,
         'all_preds': np.concatenate(all_preds),
         'all_probs': np.concatenate(all_probs),
         'all_y_true': np.concatenate(all_y_true),
