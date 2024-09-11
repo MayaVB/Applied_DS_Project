@@ -88,7 +88,7 @@ def predict_with_ensemble_model(trained_models, X_test):
     ensemble_prob = np.array(probs).mean(axis=0)
     return ensemble_pred, ensemble_prob
 
-def train_and_calc_ensemble_metrics(models, X_train, y_train, X_test, random_state=42):
+def train_and_calc_ensemble_metrics(models, X_train, y_train, X_test, random_state):
     # Set a fixed random state for reproducibility
     for model in models:
         if hasattr(model, 'random_state'):
@@ -97,7 +97,7 @@ def train_and_calc_ensemble_metrics(models, X_train, y_train, X_test, random_sta
     return predict_with_ensemble_model(models, X_test)
 
 def cross_validate_ensemble_using_StratifiedKFold(models_for_ensemble, X, y, n_splits, th, 
-                                                  random_state= random_state, show_auc_curve = True):
+                                                  random_state, show_auc_curve = True):
   skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)   
   
   metrics_arr = {
