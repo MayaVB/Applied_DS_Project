@@ -15,7 +15,6 @@ from getdata import add_nasdaq_annual_changes, add_economic_indicators
 from preprocess import preprocess_data_classifier
 from utils import load_data
 
-
 def train_rfv2_model(X_train, y_train):
     # Define hyperparameters for tuning
     param_grid = {
@@ -72,28 +71,31 @@ def predict_model(model, X_test):
     return y_pred, y_prob
 
 def predict_with_ensemble_model(trained_models, X_test):
-  preds = []
-  probs = []
-  for i in range(len(trained_models)):
-    # Predict on the test set
-    pred, prob = predict_model(trained_models[i], X_test)
-    preds.append(pred)
-    probs.append(prob)
-  predictions = np.column_stack(preds)
+    preds = []
+    probs = []
+    for i in range(len(trained_models)):
+        # Predict on the test set
+        pred, prob = predict_model(trained_models[i], X_test)
+        preds.append(pred)
+        probs.append(prob)
+    predictions = np.column_stack(preds)
 
-  # Majority voting
-  ensemble_pred, _ = mode(predictions, axis=1)
-  ensemble_pred = ensemble_pred.ravel()
+    # Majority voting
+    ensemble_pred, _ = mode(predictions, axis=1)
+    ensemble_pred = ensemble_pred.ravel()
 
-  # Combine probabilities (e.g., by averaging them)
-  ensemble_prob = np.array(probs).mean(axis=0)
-  return ensemble_pred, ensemble_prob
+    # Combine probabilities (e.g., by averaging them)
+    ensemble_prob = np.array(probs).mean(axis=0)
+    return ensemble_pred, ensemble_prob
 
-def train_and_calc_ensemble_metrics(models, X_train, y_train, X_test):
-  for model in models:
-    model.fit(X_train, y_train)
-  return predict_with_ensemble_model(models, X_test)
-
+def train_and_calc_ensemble_metrics(models, X_train, y_train, X_test, random_state=42):
+    # Set a fixed random state for reproducibility
+    for model in models:
+        if hasattr(model, 'random_state'):
+            model.set_params(random_state=random_state)  # Ensure random_state is fixed for all models
+        model.fit(X_train, y_train)
+    return predict_with_ensemble_model(models, X_test)
+    
 def cross_validate_ensemble_using_StratifiedKFold(models, X, y, n_splits=5, random_state=None, print_avg_confusionMatrix=True, print_sum_confusionMatrix=True, print_target_distribution=True, save_feature_impact_across_folds=True, th_val=0.5):
     skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
     kappa_scores = []
