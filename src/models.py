@@ -71,6 +71,23 @@ def predict_model(model, X_test):
     y_prob = model.predict_proba(X_test)[:, 1]
     return y_pred, y_prob
 
+def predict_with_ensemble_model(trained_models, X_test):
+  preds = []
+  probs = []
+  for i in range(len(trained_models)):
+    # Predict on the test set
+    pred, prob = predict_model(trained_models[i], X_test)
+    preds.append(pred)
+    probs.append(prob)
+  predictions = np.column_stack(preds)
+
+  # Majority voting
+  ensemble_pred, _ = mode(predictions, axis=1)
+  ensemble_pred = ensemble_pred.ravel()
+
+  # Combine probabilities (e.g., by averaging them)
+  ensemble_prob = np.array(probs).mean(axis=0)
+  return ensemble_pred, ensemble_prob
 
 def cross_validate_ensemble_using_StratifiedKFold(models, X, y, n_splits=5, random_state=None, print_avg_confusionMatrix=True, print_sum_confusionMatrix=True, print_target_distribution=True, save_feature_impact_across_folds=True, th_val=0.5):
     skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
