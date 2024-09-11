@@ -96,7 +96,7 @@ def train_and_calc_ensemble_metrics(models, X_train, y_train, X_test, random_sta
         model.fit(X_train, y_train)
     return predict_with_ensemble_model(models, X_test)
 
-def cross_validate_ensemble_using_StratifiedKFold(models_for_ensemble, X, y, n_splits, th, 
+def cross_validate_ensemble_using_StratifiedKFold_short(models_for_ensemble, X, y, n_splits, th, 
                                                   random_state, show_auc_curve = True):
   skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)   
   
