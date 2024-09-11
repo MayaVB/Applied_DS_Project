@@ -21,6 +21,13 @@ def cross_validation_generator(X, y, fold, random_state=42):
     return skf.split(X, y)
 
 
+def show_ConfusionMatrix_folds(avg_confusion_matrix):
+    # Plot the averaged confusion matrix
+    disp = ConfusionMatrixDisplay(confusion_matrix=avg_confusion_matrix)
+    disp.plot(cmap=plt.cm.Blues, values_format='.1f')
+    plt.title('Averaged Confusion Matrix')
+
+
 def show_ConfusionMatrix_test(y_test, y_test_pred, test_confusion_matrix_title = "Confusion Matrix (Test)"):
     """
     Displays the confusion matrix for the test set predictions.
@@ -37,7 +44,7 @@ def show_ConfusionMatrix_test(y_test, y_test_pred, test_confusion_matrix_title =
     conf_matrix_log_reg = confusion_matrix(y_test, y_test_pred)
     
     # Print the confusion matrix
-    print("Confusion Matrix (Test):")
+    # print("Confusion Matrix (Test):")
     print(conf_matrix_log_reg)
     
     # Plot the confusion matrix using ConfusionMatrixDisplay
@@ -204,7 +211,47 @@ def plot_prediction_distributions(X_test, y_test, y_pred, feature_1='relationshi
     plt.show()
 
 
+def plot_target_distribution(fold_targets_df):
+    # Create a figure with two subplots
+    fig, axes = plt.subplots(1, 2, figsize=(16, 8), sharey=True)
 
+    # Plot the distribution for 'Acquired'
+    acquired_data = fold_targets_df[fold_targets_df['Target'] == 1]
+    acquired_counts = acquired_data['Fold'].value_counts().sort_index()
+    axes[0].bar(acquired_counts.index, acquired_counts.values, color='skyblue')
+    axes[0].set_title('Distribution of Acquired Targets Across Folds')
+    axes[0].set_xlabel('Fold')
+    axes[0].set_ylabel('Count')
+
+    # Plot the distribution for 'Not Acquired'
+    not_acquired_data = fold_targets_df[fold_targets_df['Target'] == 0]
+    not_acquired_counts = not_acquired_data['Fold'].value_counts().sort_index()
+    axes[1].bar(not_acquired_counts.index, not_acquired_counts.values, color='salmon')
+    axes[1].set_title('Distribution of Not Acquired Targets Across Folds')
+    axes[1].set_xlabel('Fold')
+
+    plt.suptitle('Target Distribution Across Folds')
+    
+    
+def plot_feature_importances_kfold_agg(all_feature_importances, feature_names, n_features=10):
+    # Calculate average feature importances
+    avg_importances = np.mean(all_feature_importances, axis=0)
+
+    # Create a DataFrame for easy sorting and selection
+    importances_df = pd.DataFrame({'Feature': feature_names, 'Importance': avg_importances})
+    importances_df = importances_df.sort_values(by='Importance', ascending=False)
+
+    # Select the top n_features
+    top_importances = importances_df.head(n_features)
+
+    # Plot the feature importances
+    plt.figure(figsize=(12, 8))
+    plt.barh(top_importances['Feature'], top_importances['Importance'], color='skyblue')
+    plt.title(f'Top {n_features} Feature Importances Across Folds')
+    plt.xlabel('Average Importance')
+    plt.ylabel('Feature')
+    plt.gca().invert_yaxis()  # Invert y-axis to have the most important features on top
+    plt.show()
 
 # def find_optimal_threshold(target, predicted):
 #     """ Find the optimal probability cutoff point for a classification model related to event rate
