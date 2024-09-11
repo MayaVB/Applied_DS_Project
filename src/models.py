@@ -120,20 +120,23 @@ def cross_validate_ensemble_using_StratifiedKFold(models, X, y, n_splits=5, rand
         # Average probabilities for ensemble
         ensemble_prob = np.mean(fold_probs, axis=0)
 
+        # Convert probabilities to binary predictions based on threshold
+        y_pred_thresh = (ensemble_prob >= th_val).astype(int)
+        
         # Evaluate the ensemble model
-        kappa = cohen_kappa_score(y_val_cv, y_pred)
+        kappa = cohen_kappa_score(y_val_cv, y_pred_thresh)
         kappa_scores.append(kappa)
 
-        accuracy = accuracy_score(y_val_cv, ensemble_prob<th_val)
+        accuracy = accuracy_score(y_val_cv, y_pred_thresh)
         accuracy_scores.append(accuracy)
 
-        balanced_acc = balanced_accuracy_score(y_val_cv, ensemble_prob<th_val)
+        balanced_acc = balanced_accuracy_score(y_val_cv, y_pred_thresh)
         balanced_acc_scores.append(balanced_acc)
 
-        precision = precision_score(y_val_cv, ensemble_prob<th_val)
+        precision = precision_score(y_val_cv, y_pred_thresh)
         precision_scores.append(precision)
         
-        recall = recall_score(y_val_cv, ensemble_prob<th_val)
+        recall = recall_score(y_val_cv, y_pred_thresh)
         recall_scores.append(recall)
 
         # Collect confusion matrix for each fold
