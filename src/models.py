@@ -10,7 +10,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import StratifiedKFold
 from scipy.stats import mode
 
-from eval import show_ConfusionMatrix_test, show_ConfusionMatrix_folds, plot_target_distribution
+from eval import show_ConfusionMatrix_test, show_ConfusionMatrix_folds, plot_target_distribution, plot_auc_roc_curve
 from getdata import add_nasdaq_annual_changes, add_economic_indicators
 from preprocess import preprocess_data_classifier
 from utils import load_data
@@ -97,34 +97,38 @@ def train_and_calc_ensemble_metrics(models, X_train, y_train, X_test, random_sta
     return predict_with_ensemble_model(models, X_test)
 
 def cross_validate_ensemble_using_StratifiedKFold_short(models_for_ensemble, X, y, n_splits, th, 
-                                                  random_state, show_auc_curve = True):
-  skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)   
-  
-  metrics_arr = {
-        'Threshold': [],
-        'AUC-ROC': [],
-        'Accuracy': [],
-        'Balanced Accuracy': [],
-        'Precision': [],
-        'Recall': []
-      }  
+                                                        random_state, show_auc_curve = True):
+    skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)   
+    
+    metrics_arr = {
+            'Threshold': [],
+            'AUC-ROC': [],
+            'Accuracy': [],
+            'Balanced Accuracy': [],
+            'Precision': [],
+            'Recall': []
+        }  
 
-  for fold, (train_index, val_index) in enumerate(skf.split(X, y)):
-      y_test_cv = y.iloc[val_index]
-      ensemble_pred, ensemble_prob = train_and_calc_ensemble_metrics(models_for_ensemble, X.iloc[train_index], y.iloc[train_index], X.iloc[val_index], random_state)
-      res = evaluate_model(y_test_cv, ensemble_pred, ensemble_prob, threshold=th) 
-      for key, value in res.items():
-        metrics_arr[key].append(value)
-      if show_auc_curve:
-        plot_auc_roc_curve(y_test_cv, ensemble_prob, model_name='Ensemble')
-  k = list(metrics_arr.keys())[1:]
-  v_mean = [round(np.mean(metrics_arr[key]), 2) for key in metrics_arr][1:]
-  v_std = [round(np.std(metrics_arr[key]), 2) for key in metrics_arr][1:]
-  means_dict = dict(zip(k, v_mean))
-  std_dict = dict(zip(k, v_std))
-  print(means_dict)
-  return metrics_arr, means_dict, std_dict
-                                                      
+    for fold, (train_index, val_index) in enumerate(skf.split(X, y)):
+        y_test_cv = y.iloc[val_index]
+        ensemble_pred, ensemble_prob = train_and_calc_ensemble_metrics(models_for_ensemble, X.iloc[train_index], y.iloc[train_index], X.iloc[val_index], random_state)
+        res = evaluate_model(y_test_cv, ensemble_pred, ensemble_prob, threshold=th) 
+        
+        for key, value in res.items():
+                metrics_arr[key].append(value)
+                
+        if show_auc_curve:
+                plot_auc_roc_curve(y_test_cv, ensemble_prob, model_name='Ensemble')
+                
+    k = list(metrics_arr.keys())[1:]
+    v_mean = [round(np.mean(metrics_arr[key]), 2) for key in metrics_arr][1:]
+    v_std = [round(np.std(metrics_arr[key]), 2) for key in metrics_arr][1:]
+    means_dict = dict(zip(k, v_mean))
+    std_dict = dict(zip(k, v_std))
+    print(means_dict)
+    return metrics_arr, means_dict, std_dict
+
+    
 def cross_validate_ensemble_using_StratifiedKFold(models, X, y, n_splits=5, random_state=None, print_avg_confusionMatrix=True, print_sum_confusionMatrix=True, print_target_distribution=True, save_feature_impact_across_folds=True, th_val=0.5):
     skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
     kappa_scores = []
