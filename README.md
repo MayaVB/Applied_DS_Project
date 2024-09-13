@@ -35,9 +35,9 @@ The repository is organized as follows:
    |
    📁 notebooks
    |
-   ├── 📄 main.ipynb                        # Main notebook containing the research findings and results
+   ├── 📄 main_final.ipynb                        # Main notebook containing the research findings and results
    |
-   └── 📄 EDA.ipynb                         # Exploratory data analysis notebook containing visualizations of the dataset.
+   └── 📄 EDA_final.ipynb                         # Exploratory data analysis notebook containing visualizations of the dataset.
    |
    📁 src
    |
